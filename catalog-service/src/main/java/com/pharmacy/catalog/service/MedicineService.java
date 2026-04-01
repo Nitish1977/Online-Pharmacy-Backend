@@ -33,7 +33,8 @@ public class MedicineService {
     }
 
     public List<Medicine> searchMedicines(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) return getAllMedicines();
+        if (keyword == null || keyword.trim().isEmpty())
+            return getAllMedicines();
         return medicineRepository.searchMedicines(keyword.trim());
     }
 

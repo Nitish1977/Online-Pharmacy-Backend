@@ -34,13 +34,18 @@ import static org.mockito.Mockito.*;
 @DisplayName("AuthService Unit Tests")
 class AuthServiceTest {
 
-    @Mock private UserRepository userRepository;
-    @Mock private PasswordEncoder passwordEncoder;
-    @Mock private JwtUtil jwtUtil;
-    @Mock private AuthenticationManager authenticationManager;
-    @Mock private CustomUserDetailsService userDetailsService;
-    @Mock private EmailService emailService;
-
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+    @Mock
+    private JwtUtil jwtUtil;
+    @Mock
+    private AuthenticationManager authenticationManager;
+    @Mock
+    private CustomUserDetailsService userDetailsService;
+    @Mock
+    private org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
     @InjectMocks
     private AuthService authService;
 
@@ -60,8 +65,7 @@ class AuthServiceTest {
 
         mockUserDetails = new org.springframework.security.core.userdetails.User(
                 "rahul@example.com", "encodedPassword",
-                List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))
-        );
+                List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER")));
     }
 
     // ── Signup Tests ─────────────────────────────────────────────────────────
@@ -92,7 +96,10 @@ class AuthServiceTest {
 
         verify(userRepository).save(any(User.class));
         verify(passwordEncoder).encode("password123");
-        verify(emailService).sendWelcomeEmail("rahul@example.com", "Rahul Kumar");
+        verify(rabbitTemplate).convertAndSend(
+                eq(com.pharmacy.identity.config.RabbitMQConfig.EXCHANGE),
+                eq(com.pharmacy.identity.config.RabbitMQConfig.ROUTING_KEY_NOTIFICATION),
+                any(com.pharmacy.identity.dto.NotificationEvent.class));
     }
 
     @Test

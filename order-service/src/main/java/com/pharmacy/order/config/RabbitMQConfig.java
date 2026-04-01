@@ -13,7 +13,7 @@ public class RabbitMQConfig {
     public static final String ROUTING_KEY_ORDER_PLACED = "order.placed";
 
     @Bean
-    public TopicExchange exchange() {
+    public TopicExchange topicExchange() {
         return new TopicExchange(EXCHANGE);
     }
 

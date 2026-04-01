@@ -57,12 +57,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Component
     public static class JwtTokenFilter extends OncePerRequestFilter {
 
         private final String secret;
 
-        public JwtTokenFilter(@Value("${jwt.secret}") String secret) {
+        public JwtTokenFilter(String secret) {
             this.secret = secret;
         }
 

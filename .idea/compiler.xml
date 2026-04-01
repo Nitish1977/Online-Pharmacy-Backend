@@ -8,13 +8,26 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="api-gateway" />
-        <module name="order-service" />
         <module name="eureka-server" />
-        <module name="identity-service" />
         <module name="admin-service" />
+      </profile>
+      <profile name="Annotation profile for admin-service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.44/lombok-1.18.44.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.44/lombok-1.18.44.jar" />
+        </processorPath>
+        <module name="order-service" />
+        <module name="identity-service" />
+        <module name="notification-service" />
         <module name="catalog-service" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="online-pharmacy-parent" target="1.5" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
@@ -23,6 +36,7 @@
       <module name="catalog-service" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
       <module name="identity-service" options="-parameters" />
+      <module name="notification-service" options="-parameters" />
       <module name="order-service" options="-parameters" />
     </option>
   </component>

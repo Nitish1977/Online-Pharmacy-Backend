@@ -4,14 +4,16 @@ import com.pharmacy.catalog.config.RabbitMQConfig;
 import com.pharmacy.catalog.dto.OrderPlacedEvent;
 import com.pharmacy.catalog.service.MedicineService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OrderEventListener {
 
-    @Autowired
-    private MedicineService medicineService;
+    private final MedicineService medicineService;
+
+    public OrderEventListener(MedicineService medicineService) {
+        this.medicineService = medicineService;
+    }
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_STOCK)
     public void handleOrderPlaced(OrderPlacedEvent event) {

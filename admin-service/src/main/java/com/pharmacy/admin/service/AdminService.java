@@ -8,7 +8,6 @@ import com.pharmacy.admin.enums.MedicineStatus;
 import com.pharmacy.admin.enums.OrderStatus;
 import com.pharmacy.admin.repository.catalog.MedicineEntityRepository;
 import com.pharmacy.admin.repository.orders.OrderEntityRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,12 +19,15 @@ import java.util.Map;
 public class AdminService {
 
     // Reads from pharmacy_orders DB
-    @Autowired
-    private OrderEntityRepository orderRepository;
+    private final OrderEntityRepository orderRepository;
 
     // Reads from pharmacy_catalog DB
-    @Autowired
-    private MedicineEntityRepository medicineRepository;
+    private final MedicineEntityRepository medicineRepository;
+
+    public AdminService(OrderEntityRepository orderRepository, MedicineEntityRepository medicineRepository) {
+        this.orderRepository = orderRepository;
+        this.medicineRepository = medicineRepository;
+    }
 
     // ─── Dashboard ──────────────────────────────────────────────────────
 
@@ -79,7 +81,7 @@ public class AdminService {
 
     public MedicineEntity getMedicineById(Long id) {
         return medicineRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Medicine not found: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Medicine not found: " + id));
     }
 
     public MedicineEntity addMedicine(MedicineRequest req) {
@@ -135,7 +137,7 @@ public class AdminService {
 
     public OrderEntity getOrderById(Long id) {
         return orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + id));
     }
 
     public OrderEntity updateOrderStatus(Long id, String status) {
@@ -143,7 +145,7 @@ public class AdminService {
         try {
             order.setStatus(OrderStatus.valueOf(status.toUpperCase()));
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid status: " + status +
+            throw new IllegalArgumentException("Invalid status: " + status +
                 ". Valid values: PACKED, OUT_FOR_DELIVERY, DELIVERED, ADMIN_CANCELLED, REFUND_INITIATED, REFUND_COMPLETED");
         }
         order.setUpdatedAt(LocalDateTime.now());
@@ -154,7 +156,7 @@ public class AdminService {
         try {
             return orderRepository.findByStatus(OrderStatus.valueOf(status.toUpperCase()));
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid status: " + status);
+            throw new IllegalArgumentException("Invalid status: " + status);
         }
     }
 

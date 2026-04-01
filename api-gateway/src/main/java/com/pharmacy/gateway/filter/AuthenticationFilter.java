@@ -1,7 +1,6 @@
 package com.pharmacy.gateway.filter;
 
 import com.pharmacy.gateway.config.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
@@ -9,17 +8,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
+public class AuthenticationFilter extends AbstractGatewayFilterFactory<Object> {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    public AuthenticationFilter() {
-        super(Config.class);
+    public AuthenticationFilter(JwtUtil jwtUtil) {
+        super(Object.class);
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
-    public GatewayFilter apply(Config config) {
+    public GatewayFilter apply(Object config) {
         return (exchange, chain) -> {
             HttpHeaders headers = exchange.getRequest().getHeaders();
 
@@ -43,6 +42,4 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
             return chain.filter(exchange);
         };
     }
-
-    public static class Config {}
 }

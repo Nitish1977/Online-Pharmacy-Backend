@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Configuration
 @EnableTransactionManagement
@@ -37,6 +38,7 @@ public class OrdersDataSourceConfig {
     @Bean(name = "ordersDataSource")
     public DataSource ordersDataSource(
             @Qualifier("ordersDataSourceProperties") DataSourceProperties props) {
+        Objects.requireNonNull(props, "DataSourceProperties must not be null");
         return props.initializeDataSourceBuilder().build();
     }
 
@@ -45,6 +47,8 @@ public class OrdersDataSourceConfig {
     public LocalContainerEntityManagerFactoryBean ordersEntityManagerFactory(
             EntityManagerFactoryBuilder builder,
             @Qualifier("ordersDataSource") DataSource dataSource) {
+        Objects.requireNonNull(builder, "EntityManagerFactoryBuilder must not be null");
+        Objects.requireNonNull(dataSource, "DataSource must not be null");
         Map<String, Object> properties = new HashMap<>();
         properties.put("hibernate.hbm2ddl.auto", "update");
         properties.put("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
@@ -61,6 +65,7 @@ public class OrdersDataSourceConfig {
     @Bean(name = "ordersTransactionManager")
     public PlatformTransactionManager ordersTransactionManager(
             @Qualifier("ordersEntityManagerFactory") LocalContainerEntityManagerFactoryBean factory) {
+        Objects.requireNonNull(factory, "EntityManagerFactory must not be null");
         return new JpaTransactionManager(factory.getObject());
     }
 }

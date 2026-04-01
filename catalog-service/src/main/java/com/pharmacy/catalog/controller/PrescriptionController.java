@@ -5,7 +5,6 @@ import com.pharmacy.catalog.service.PrescriptionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,8 +20,11 @@ import java.util.List;
 @SecurityRequirement(name = "Bearer Authentication")
 public class PrescriptionController {
 
-    @Autowired
-    private PrescriptionService prescriptionService;
+    private final PrescriptionService prescriptionService;
+
+    public PrescriptionController(PrescriptionService prescriptionService) {
+        this.prescriptionService = prescriptionService;
+    }
 
     // ── CUSTOMER ────────────────────────────────────────────────────────
 

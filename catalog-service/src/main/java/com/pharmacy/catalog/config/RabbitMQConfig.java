@@ -23,13 +23,13 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public TopicExchange exchange() {
+    public TopicExchange topicExchange() {
         return new TopicExchange(EXCHANGE);
     }
 
     @Bean
-    public Binding bindingStock(Queue stockQueue, TopicExchange exchange) {
-        return BindingBuilder.bind(stockQueue).to(exchange).with(ROUTING_KEY_ORDER_PLACED);
+    public Binding bindingStock(Queue stockQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(stockQueue).to(topicExchange).with(ROUTING_KEY_ORDER_PLACED);
     }
 
     @Bean

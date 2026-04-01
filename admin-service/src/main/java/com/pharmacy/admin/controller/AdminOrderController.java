@@ -5,7 +5,6 @@ import com.pharmacy.admin.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +18,11 @@ import java.util.List;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminOrderController {
 
-    @Autowired
-    private AdminService adminService;
+    private final AdminService adminService;
+
+    public AdminOrderController(AdminService adminService) {
+        this.adminService = adminService;
+    }
 
     @GetMapping
     @Operation(summary = "Get all orders sorted by latest first [ADMIN]")

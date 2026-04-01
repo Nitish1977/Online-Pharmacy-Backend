@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +18,11 @@ import java.util.List;
 @Tag(name = "Medicine Catalog", description = "Browse and search medicines")
 public class MedicineController {
 
-    @Autowired
-    private MedicineService medicineService;
+    private final MedicineService medicineService;
+
+    public MedicineController(MedicineService medicineService) {
+        this.medicineService = medicineService;
+    }
 
     // ── PUBLIC ──────────────────────────────────────────────────────────
 

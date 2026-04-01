@@ -75,7 +75,7 @@ class PrescriptionServiceTest {
                 "text/plain", "text content".getBytes());
 
         assertThatThrownBy(() -> prescriptionService.uploadPrescription(1L, file))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Only PDF, JPG, or PNG files are allowed");
 
         verify(prescriptionRepository, never()).save(any());
@@ -99,7 +99,7 @@ class PrescriptionServiceTest {
         when(prescriptionRepository.findById(1L)).thenReturn(Optional.of(mockPrescription));
         when(prescriptionRepository.save(any(Prescription.class))).thenReturn(mockPrescription);
 
-        Prescription result = prescriptionService.updateStatus(1L, "APPROVED", "Valid");
+        prescriptionService.updateStatus(1L, "APPROVED", "Valid");
 
         verify(prescriptionRepository).save(argThat(
                 p -> p.getStatus() == PrescriptionStatus.APPROVED
@@ -126,7 +126,7 @@ class PrescriptionServiceTest {
         when(prescriptionRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> prescriptionService.updateStatus(99L, "APPROVED", ""))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Prescription not found");
     }
 

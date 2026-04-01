@@ -28,9 +28,12 @@ import static org.mockito.Mockito.*;
 @DisplayName("OrderService Unit Tests")
 class OrderServiceTest {
 
-    @Mock private OrderRepository orderRepository;
-    @Mock private CartItemRepository cartItemRepository;
-    @Mock private RabbitTemplate rabbitTemplate;
+    @Mock
+    private OrderRepository orderRepository;
+    @Mock
+    private CartItemRepository cartItemRepository;
+    @Mock
+    private RabbitTemplate rabbitTemplate;
 
     @InjectMocks
     private OrderService orderService;
@@ -188,7 +191,7 @@ class OrderServiceTest {
         when(cartItemRepository.findByCustomerId(1L)).thenReturn(List.of());
 
         assertThatThrownBy(() -> orderService.checkout(request))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Cart is empty");
 
         verify(orderRepository, never()).save(any());
@@ -212,8 +215,7 @@ class OrderServiceTest {
         Order result = orderService.initiatePayment(1L);
 
         assertThat(result.getStatus()).isEqualTo(OrderStatus.PAID);
-        verify(orderRepository).save(argThat(o ->
-                o.getStatus() == OrderStatus.PAID && o.getPaymentId() != null));
+        verify(orderRepository).save(argThat(o -> o.getStatus() == OrderStatus.PAID && o.getPaymentId() != null));
     }
 
     @Test
@@ -224,7 +226,7 @@ class OrderServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(mockOrder));
 
         assertThatThrownBy(() -> orderService.initiatePayment(1L))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Order is not in PAYMENT_PENDING state");
     }
 
@@ -253,7 +255,7 @@ class OrderServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(mockOrder));
 
         assertThatThrownBy(() -> orderService.cancelOrder(1L))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Order cannot be cancelled at this stage");
     }
 

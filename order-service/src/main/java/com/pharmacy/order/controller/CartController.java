@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +19,11 @@ import java.util.List;
 @SecurityRequirement(name = "Bearer Authentication")
 public class CartController {
 
-    @Autowired
-    private OrderService orderService;
+    private final OrderService orderService;
+
+    public CartController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
@@ -40,7 +42,7 @@ public class CartController {
     @PutMapping("/item/{cartItemId}")
     @PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
     @Operation(summary = "Update cart item quantity [CUSTOMER/ADMIN]")
-    public ResponseEntity<?> updateCartItem(@PathVariable Long cartItemId, @RequestParam int quantity) {
+    public ResponseEntity<Object> updateCartItem(@PathVariable Long cartItemId, @RequestParam int quantity) {
         CartItem updated = orderService.updateCartItem(cartItemId, quantity);
         return ResponseEntity.ok(updated != null ? updated : "Item removed from cart");
     }

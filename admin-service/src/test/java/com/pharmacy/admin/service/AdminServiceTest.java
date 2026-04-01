@@ -87,7 +87,7 @@ class AdminServiceTest {
         assertThat(response.getAverageOrderValue()).isEqualTo(51.00); // 102 / 2
         assertThat(response.getTotalMedicines()).isEqualTo(10L);
         assertThat(response.getActiveMedicines()).isEqualTo(8L);
-        assertThat(response.getLowStockCount()).isEqualTo(0L);
+        assertThat(response.getLowStockCount()).isZero();
         assertThat(response.getExpiringIn30DaysCount()).isEqualTo(1L);
     }
 
@@ -104,9 +104,9 @@ class AdminServiceTest {
 
         DashboardResponse response = adminService.getDashboard();
 
-        assertThat(response.getTotalRevenue()).isEqualTo(0.0);
-        assertThat(response.getAverageOrderValue()).isEqualTo(0.0);
-        assertThat(response.getTotalOrders()).isEqualTo(0L);
+        assertThat(response.getTotalRevenue()).isZero();
+        assertThat(response.getAverageOrderValue()).isZero();
+        assertThat(response.getTotalOrders()).isZero();
     }
 
     // ── Medicine Tests ───────────────────────────────────────────────────────
@@ -200,7 +200,7 @@ class AdminServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(mockOrder));
         when(orderRepository.save(any(OrderEntity.class))).thenReturn(mockOrder);
 
-        OrderEntity result = adminService.updateOrderStatus(1L, "PACKED");
+        adminService.updateOrderStatus(1L, "PACKED");
 
         verify(orderRepository).save(argThat(o -> o.getStatus() == OrderStatus.PACKED));
     }
@@ -211,7 +211,7 @@ class AdminServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(mockOrder));
 
         assertThatThrownBy(() -> adminService.updateOrderStatus(1L, "FLYING"))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Invalid status: FLYING");
     }
 
@@ -226,9 +226,10 @@ class AdminServiceTest {
 
         Map<String, Object> report = adminService.getSalesReport();
 
-        assertThat(report.get("totalRevenue")).isEqualTo(500.0);
-        assertThat(report.get("deliveredOrders")).isEqualTo(5L);
-        assertThat(report.get("averageOrderValue")).isEqualTo(100.0); // 500/5
-        assertThat(report.get("totalOrders")).isEqualTo(8L);
+        assertThat(report)
+            .containsEntry("totalRevenue", 500.0)
+            .containsEntry("deliveredOrders", 5L)
+            .containsEntry("averageOrderValue", 100.0)
+            .containsEntry("totalOrders", 8L);
     }
 }

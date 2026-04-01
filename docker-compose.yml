@@ -1,0 +1,177 @@
+version: '3.8'
+
+networks:
+  pharmacy-net:
+    driver: bridge
+
+services:
+  # Infrastructure
+  mysql:
+    image: mysql:8.0
+    container_name: pharmacy-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: tiger
+    ports:
+      - "3306:3306"
+    networks:
+      - pharmacy-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ptiger"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: pharmacy-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - pharmacy-net
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: pharmacy-zipkin
+    restart: always
+    ports:
+      - "9411:9411"
+    networks:
+      - pharmacy-net
+
+  # Service Discovery
+  eureka-server:
+    build:
+      context: ./eureka-server
+    container_name: pharmacy-eureka
+    restart: always
+    ports:
+      - "8761:8761"
+    networks:
+      - pharmacy-net
+
+  # Microservices
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: pharmacy-gateway
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    networks:
+      - pharmacy-net
+    depends_on:
+      - eureka-server
+      - zipkin
+
+  identity-service:
+    build:
+      context: ./identity-service
+    container_name: pharmacy-identity
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/pharmacy_identity?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    networks:
+      - pharmacy-net
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  catalog-service:
+    build:
+      context: ./catalog-service
+    container_name: pharmacy-catalog
+    restart: always
+    ports:
+      - "8082:8082"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/pharmacy_catalog?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    networks:
+      - pharmacy-net
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  order-service:
+    build:
+      context: ./order-service
+    container_name: pharmacy-order
+    restart: always
+    ports:
+      - "8083:8083"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/pharmacy_order?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    networks:
+      - pharmacy-net
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  admin-service:
+    build:
+      context: ./admin-service
+    container_name: pharmacy-admin
+    restart: always
+    ports:
+      - "8084:8084"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/pharmacy_admin?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    networks:
+      - pharmacy-net
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+
+  notification-service:
+    build:
+      context: ./notification-service
+    container_name: pharmacy-notification
+    restart: always
+    ports:
+      - "8085:8085"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    networks:
+      - pharmacy-net
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      eureka-server:
+        condition: service_started

@@ -12,7 +12,6 @@ import com.pharmacy.order.config.RabbitMQConfig;
 import com.pharmacy.order.dto.OrderPlacedEvent;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,9 +21,16 @@ import java.util.Optional;
 @Service
 public class OrderService {
 
-    @Autowired private OrderRepository orderRepository;
-    @Autowired private CartItemRepository cartItemRepository;
-    @Autowired private RabbitTemplate rabbitTemplate;
+    private final OrderRepository orderRepository;
+    private final CartItemRepository cartItemRepository;
+    private final RabbitTemplate rabbitTemplate;
+
+    public OrderService(OrderRepository orderRepository, CartItemRepository cartItemRepository,
+            RabbitTemplate rabbitTemplate) {
+        this.orderRepository = orderRepository;
+        this.cartItemRepository = cartItemRepository;
+        this.rabbitTemplate = rabbitTemplate;
+    }
 
     // ─── Cart ───────────────────────────────────────────────────────────
 
@@ -52,8 +58,11 @@ public class OrderService {
 
     public CartItem updateCartItem(Long cartItemId, int quantity) {
         CartItem item = cartItemRepository.findById(cartItemId)
-                .orElseThrow(() -> new RuntimeException("Cart item not found"));
-        if (quantity <= 0) { cartItemRepository.delete(item); return null; }
+                .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+        if (quantity <= 0) {
+            cartItemRepository.delete(item);
+            return null;
+        }
         item.setQuantity(quantity);
         return cartItemRepository.save(item);
     }
@@ -73,7 +82,8 @@ public class OrderService {
     @Transactional
     public Order checkout(CheckoutRequest request) {
         List<CartItem> cartItems = cartItemRepository.findByCustomerId(request.getCustomerId());
-        if (cartItems.isEmpty()) throw new RuntimeException("Cart is empty");
+        if (cartItems.isEmpty())
+            throw new IllegalArgumentException("Cart is empty");
 
         boolean needsPrescription = cartItems.stream().anyMatch(CartItem::isRequiresPrescription);
 
@@ -125,7 +135,7 @@ public class OrderService {
     public Order initiatePayment(Long orderId) {
         Order order = getOrderById(orderId);
         if (order.getStatus() != OrderStatus.PAYMENT_PENDING)
-            throw new RuntimeException("Order is not in PAYMENT_PENDING state");
+            throw new IllegalStateException("Order is not in PAYMENT_PENDING state");
         order.setPaymentId("PAY-" + System.currentTimeMillis());
         order.setStatus(OrderStatus.PAID);
         order.setUpdatedAt(LocalDateTime.now());
@@ -140,15 +150,15 @@ public class OrderService {
 
     public Order getOrderById(Long orderId) {
         return orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
     }
 
     public Order cancelOrder(Long orderId) {
         Order order = getOrderById(orderId);
         if (order.getStatus() == OrderStatus.PACKED ||
-            order.getStatus() == OrderStatus.OUT_FOR_DELIVERY ||
-            order.getStatus() == OrderStatus.DELIVERED)
-            throw new RuntimeException("Order cannot be cancelled at this stage");
+                order.getStatus() == OrderStatus.OUT_FOR_DELIVERY ||
+                order.getStatus() == OrderStatus.DELIVERED)
+            throw new IllegalStateException("Order cannot be cancelled at this stage");
         order.setStatus(OrderStatus.CUSTOMER_CANCELLED);
         order.setUpdatedAt(LocalDateTime.now());
         return orderRepository.save(order);
